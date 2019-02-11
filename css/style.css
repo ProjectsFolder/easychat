@@ -55,7 +55,7 @@ html {
     font-size: 62.5%;
 }
 
-button {
+button, input {
     padding: 0;
     margin: 0;
     outline: none;
@@ -74,13 +74,21 @@ body {
     font-size: 1.4rem;
 
     background-color: #f66565;
-    background-image: linear-gradient(125deg,#6a3dfd, #f66565);
+    background-color: #d5adc8;
+    background-image: linear-gradient(315deg, #d5adc8 0%, #ff8489 74%);
     background-size: cover;
 }
 
 .container {
     max-width: 117rem;
     margin: 0 auto;
+}
+
+.depth-effect {
+    border-top-left-radius: 1.5rem;
+    border-top-right-radius: 1.5rem;
+    background-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 5.625rem 1.875rem rgba(0, 0, 0, 0.07); 
 }
 
 .logo { 
@@ -170,8 +178,62 @@ body {
 .chat-box {
     position: relative;
 
-    background-color: rgba(255,255,255,0.70);
-    border-top-left-radius: 1.5rem;
-    border-top-right-radius: 1.5rem;
+    display: flex;
+    flex-direction: column;
 
+    background-color: rgba(255, 255, 255, 0.70);
+}
+
+.chat-box .message-list {
+    flex: 1;
+}
+
+.chat-box .message-input {
+    height: 10rem;
+    display: flex;
+}
+
+.chat-box .message-wrap {
+    display: flex;
+    flex: 1;
+}
+
+.chat-box .avatar-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.chat-box .avatar-img {
+    display: block;
+    object-fit: cover;
+    object-position: bottom;
+
+    border-radius: 1.5rem;
+    box-shadow: 0 0 2.625rem 0.775rem rgba(0, 0, 0, 0.15);
+}
+
+.chat-box .message-text{
+    padding-right: 1rem;
+
+    display: block;
+    flex: 1;
+
+    color: #242424;
+    font-size: 2rem;
+
+    background-color: transparent;
+}
+
+.chat-box .avatar-wrap,
+.chat-box .send-message {
+    width: 10rem; 
+    max-width: 10rem;
+}
+
+.chat-box .send-message {
+    background-color: transparent;
+    background-image: url(../images/send.png);
+    background-repeat: no-repeat;
+    background-position: center;
 }
