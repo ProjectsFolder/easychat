@@ -190,7 +190,7 @@ body {
 .chat-box .message-list {
     flex: 1;
 
-    overflow-y: auto;
+    overflow-y: scroll;
 }
 
 .message-list .message{
