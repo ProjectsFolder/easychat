@@ -62,13 +62,18 @@ button, input {
     border: 0;
 }
 
+button {
+    cursor: pointer;
+}
+
 body {
     margin: 0;
     padding: 1.6rem;
     padding-bottom: 0;
-    height: 100vh;
+
     display: flex;
     flex-direction: column;
+    height: 100vh;
 
     font-family: 'Roboto';
     font-size: 1.4rem;
@@ -78,6 +83,7 @@ body {
     background-image: linear-gradient(125deg, #6a3dfd, #f66565);
     background-size: cover;
 }
+
 
 .container {
     max-width: 117rem;
@@ -140,6 +146,10 @@ body {
     background-color: transparent;
 }
 
+.menu .profile {
+    color: #fbb78e
+}
+
 .menu .tab-list {
     display: flex;
 }
@@ -174,7 +184,7 @@ body {
 /* СПИСОК СООБЩЕНИЙ */
 
 .main { 
-    flex: 1;
+    min-height: 0;
     display: flex;
 }
 

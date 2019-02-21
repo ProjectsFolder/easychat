@@ -60,13 +60,21 @@ class Message {
 
 window.onload = function () {
 
+    let sessionToken = sessionStorage.getItem('token');
+    if (!sessionToken) {
+        window.location = "login.html";
+    }
+    let sessionLogin = sessionStorage.getItem('login');
+    let profileName =  document.querySelector(".nav-item.profile");
+    profileName.textContent = sessionLogin;
+
     let messageList = document.querySelector(".message-list");
     let messageText = document.querySelector(".message-text");
     let sendMessage = document.querySelector(".send-message");
     sendMessage.addEventListener("click", function (event) {
 
         let message = new Message({
-            nickname: "trike94",
+            nickname: sessionLogin,
             text: messageText.value,
             imgSrc: "images/avatars/2.jpg"
         }).getElem();
@@ -75,4 +83,5 @@ window.onload = function () {
     
         messageList.scrollTop = messageList.scrollHeight;
     });
-}
+    
+ }
