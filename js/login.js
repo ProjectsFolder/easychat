@@ -4,7 +4,22 @@ window.onload = function () {
     formDOMRegister.onsubmit = function() {
         let form = new FormData(formDOMRegister);
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", "http://localhost:52834/api/users/register");
+        xhr.open("POST", "http://localhost:52834/api/users/register", true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200)
+                {
+                    try{
+                        alert("Успешно");
+                        formDOMRegister.submit();
+                    } catch (e) {
+                        alert(e);
+                    }
+                } else {
+                    alert("Не корректные логин или пароль");
+                }
+            }
+        }
         xhr.send(form);
         return false;
     }

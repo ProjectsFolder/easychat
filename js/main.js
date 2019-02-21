@@ -6,10 +6,20 @@ class Message {
         this.nickname = options.nickname;
         this.text = options.text;
         this.imgSrc = options.imgSrc;
+        this.nicknameFromToken = options.nicknameFromToken;
     }
     render() {
         this._elem = document.createElement("article");
-        this._elem.className = "sent message depth-effect";
+        this._elem.className = "message depth-effect";
+
+        let messageType;
+        // console.log(this.nicknameFromToken + " " + this.nickname);
+        if (this.nicknameFromToken ===  this.nickname) {
+            messageType = "sent";
+        } else {
+            messageType = "accept";
+        }
+        this._elem.classList.add(messageType);
         
         let headerMessage = document.createElement("header");
         headerMessage.className = "header-message";
@@ -80,8 +90,9 @@ window.onload = function () {
     });
 
     let messageList = document.querySelector(".message-list");
+    let lastMessageID;
 
-    function subscribe() {
+    function getMessages(getAll) {
         var xhr = new XMLHttpRequest();
         xhr.open("GET", "http://localhost:52834/api/messages", true);
         xhr.setRequestHeader("Authorization", sessionToken);
@@ -91,15 +102,44 @@ window.onload = function () {
                 {
                     try{
                         let respObj = JSON.parse(xhr.responseText);
-                        // alert("Успешно");
-                        // console.dir(respObj);
+                        let lastItem = respObj[respObj.length-1];
+                        
+                        if (lastItem.id !== lastMessageID) {
+                            
+                            if (getAll) {
+                                respObj.forEach(item => {
+                                    let message = new Message({
+                                        nickname: item.username,
+                                        text: item.text,
+                                        imgSrc: "images/avatars/2.jpg",
+                                        nicknameFromToken: sessionStorage.getItem("login")
+                                    }).getElem();
+
+                                    lastMessageID = item.id;
+                                    messageList.appendChild(message);
+                                });
+                            } else {
+                                let message = new Message({
+                                    nickname: lastItem.username,
+                                    text: lastItem.text,
+                                    imgSrc: "images/avatars/2.jpg",
+                                    nicknameFromToken: sessionStorage.getItem("login")
+                                }).getElem();
+
+                                lastMessageID = lastItem.id;
+                                messageList.appendChild(message);
+                            }
+
+                            messageList.scrollTop = messageList.scrollHeight;
+                        }
                     } catch (e) {
-                        alert(e);
+                        if (e.name !== "TypeError")
+                            alert(e);
                     }
                 } else {
-                    alert("Возникла ошибка");
+                    alert(`Возникла ошибка: ${xhr.status}`);
                 }
-                subscribe();
+                getMessages();
             }
         }
         xhr.send();
@@ -116,16 +156,9 @@ window.onload = function () {
         xhr.open("POST", "http://localhost:52834/api/messages", true);
         xhr.setRequestHeader("Authorization", sessionToken);
         xhr.send(formData);
+
         messageText.value = "";
-        
-        // subscribe();
-        // let message = new Message({
-        //     nickname: sessionLogin,
-        //     text: messageText.value,
-        //     imgSrc: "images/avatars/2.jpg"
-        // }).getElem();
-        // messageList.appendChild(message);
-        // messageList.scrollTop = messageList.scrollHeight;
     });
-    
+
+    getMessages(true);
  }
