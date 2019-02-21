@@ -60,40 +60,72 @@ class Message {
 
 window.onload = function () {
 
-    let sessionToken = sessionStorage.getItem('token');
+    let sessionToken = window.sessionStorage.getItem('token');
     if (!sessionToken) {
         window.location = "login.html";
     }
-    let sessionLogin = sessionStorage.getItem('login');
+    let sessionLogin = window.sessionStorage.getItem('login');
     let profileName =  document.querySelector(".nav-item.profile");
     profileName.textContent = sessionLogin;
-
-    let messageList = document.querySelector(".message-list");
-    let messageText = document.querySelector(".message-text");
-    let sendMessage = document.querySelector(".send-message");
-    sendMessage.addEventListener("click", function (event) {
-
-        let message = new Message({
-            nickname: sessionLogin,
-            text: messageText.value,
-            imgSrc: "images/avatars/2.jpg"
-        }).getElem();
-        
-        messageList.appendChild(message);
     
-        messageList.scrollTop = messageList.scrollHeight;
-    });
-
-
     let logOut = document.querySelector(".nav-item.log-out");
-    logOut.onclick = function() {
+    logOut.addEventListener("click", function() {
         var xhr = new XMLHttpRequest();
         xhr.open("POST", "http://localhost:52834/api/users/logout", false);
         xhr.setRequestHeader("Authorization", sessionToken);
         xhr.send();
 
-        sessionStorage.clear();
+        window.sessionStorage.clear();
         window.location.reload();
+    });
+
+    let messageList = document.querySelector(".message-list");
+
+    function subscribe() {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "http://localhost:52834/api/messages", true);
+        xhr.setRequestHeader("Authorization", sessionToken);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200)
+                {
+                    try{
+                        let respObj = JSON.parse(xhr.responseText);
+                        // alert("Успешно");
+                        // console.dir(respObj);
+                    } catch (e) {
+                        alert(e);
+                    }
+                } else {
+                    alert("Возникла ошибка");
+                }
+                subscribe();
+            }
+        }
+        xhr.send();
     }
+
+    let messageText = document.querySelector(".message-text");
+    let sendMessage = document.querySelector(".send-message");
+    sendMessage.addEventListener("click", function (event) {
+
+        let formData = new FormData();
+        formData.append("text", messageText.value);
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "http://localhost:52834/api/messages", true);
+        xhr.setRequestHeader("Authorization", sessionToken);
+        xhr.send(formData);
+        messageText.value = "";
+        
+        // subscribe();
+        // let message = new Message({
+        //     nickname: sessionLogin,
+        //     text: messageText.value,
+        //     imgSrc: "images/avatars/2.jpg"
+        // }).getElem();
+        // messageList.appendChild(message);
+        // messageList.scrollTop = messageList.scrollHeight;
+    });
     
  }

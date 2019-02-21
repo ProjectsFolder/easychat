@@ -35,4 +35,5 @@ window.onload = function () {
         xhr.send(form);
         return false;
     }
- }
+
+}
