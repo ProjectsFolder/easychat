@@ -83,5 +83,17 @@ window.onload = function () {
     
         messageList.scrollTop = messageList.scrollHeight;
     });
+
+
+    let logOut = document.querySelector(".nav-item.log-out");
+    logOut.onclick = function() {
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "http://localhost:52834/api/users/logout", false);
+        xhr.setRequestHeader("Authorization", sessionToken);
+        xhr.send();
+
+        sessionStorage.clear();
+        window.location.reload();
+    }
     
  }
