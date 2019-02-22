@@ -9,22 +9,37 @@
     <title>easychat</title>
 </head>
 <body>
-    <div class="container">
-        <fieldset>
-            <legend>Регистрация</legend>
-            <form  method="POST" action="index.html" name="registration">
-                <input type="text" name="login" value="">
-                <input type="text" name="password" value="">
-                <input type="submit">
-            </form>
-        </fieldset>
-        <fieldset>
-            <legend>Авторизация</legend>
-            <form method="POST" action="index.html" name="autorisation">
-                <input type="text" name="login" value="">
-                <input type="text" name="password" value="">
-                <input type="submit">
-            </form>
-        </fieldset>
-    </div>
+    <main class="login-forms">
+        <div class="container">
+            <div class="form-wrap">
+                <header class="logo">
+                    <div class="logo-name">easychat</div>
+                    <div class="logo-wrap">
+                        <img src="images/logo.png" alt="">
+                    </div>
+                </header>
+                <div class="notice">
+                    Это тестовый проект для практики в сфере взаимодействия с API сервера
+                </div>
+                <fieldset class="login-fieldset sign-up">
+                    <legend class="legend">Регистрация</legend>
+                    <form class="form" method="POST" action="index.html" name="registration">
+                        <input class="input" type="text" placeholder="Логин" name="login" value="">
+                        <input class="input" type="password" placeholder="Пароль" name="password" value="">
+                        <input class="change-button" name="changeType" type="button" value="Войти в аккаунт">
+                        <input class="submit-button" type="submit">
+                    </form>
+                </fieldset>
+                <fieldset class="login-fieldset sign-in">
+                    <legend class="legend">Авторизация</legend>
+                    <form class="form" method="POST" action="index.html" name="autorisation">
+                        <input class="input" type="text" placeholder="Логин" name="login" value="">
+                        <input class="input" type="password" placeholder="Пароль" name="password" value="">
+                        <input class="change-button" name="changeType" type="button" value="Зарегистрировать аккаунт">
+                        <input class="submit-button" type="submit">
+                    </form>
+                </fieldset>
+            </div>
+        </div>
+    </main>
 </body>

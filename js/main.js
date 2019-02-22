@@ -6,9 +6,14 @@ class Message {
         this.nickname = options.nickname;
         this.text = options.text;
         this.imgSrc = options.imgSrc;
+        this.time = options.time;
         this.nicknameFromToken = options.nicknameFromToken;
     }
     render() {
+        function formatDateTime(value) {
+            return ('0' + value).slice(-2);
+        }
+
         this._elem = document.createElement("article");
         this._elem.className = "message depth-effect";
 
@@ -28,8 +33,8 @@ class Message {
         avatarWrap.className = "avatar-wrap";
         let avatarImg = document.createElement("img");
         avatarImg.className = "avatar-img";
-        avatarImg.height = 60;
-        avatarImg.width = 60;
+        avatarImg.height = 40;
+        avatarImg.width = 40;
         avatarImg.src = this.imgSrc;
 
         let aboutInfo = document.createElement("div");
@@ -39,15 +44,18 @@ class Message {
         nickname.textContent = this.nickname;
         let dateTime = document.createElement("div");
         dateTime.className = "date-time";
-        let dateObj = new Date();
+        let dateObj = new Date(this.time*1000);
+   
+
         let time = document.createElement("time");
         time.className = "time";
-        time.textContent = `${dateObj.getHours()}:${dateObj.getMinutes()}`;
+        time.textContent = `${formatDateTime(dateObj.getHours())}:${formatDateTime(dateObj.getMinutes())}`;
         let date = document.createElement("time");
         date.className = "date";
-        date.textContent = `${dateObj.getMonth()+1}.${dateObj.getDate()}.${dateObj.getFullYear()}`;
+        date.textContent = `${formatDateTime(dateObj.getMonth()+1)}.${formatDateTime(dateObj.getDate())}.${formatDateTime(dateObj.getFullYear())}`;
 
         let textMessage = document.createElement("div");
+        textMessage.className = "text";
         textMessage.textContent = this.text;
 
 
@@ -111,6 +119,7 @@ window.onload = function () {
                                     let message = new Message({
                                         nickname: item.username,
                                         text: item.text,
+                                        time: item.timecreated ,
                                         imgSrc: "images/avatars/2.jpg",
                                         nicknameFromToken: sessionStorage.getItem("login")
                                     }).getElem();
@@ -124,6 +133,7 @@ window.onload = function () {
                                 let message = new Message({
                                     nickname: lastItem.username,
                                     text: lastItem.text,
+                                    time: lastItem.timecreated,
                                     imgSrc: "images/avatars/2.jpg",
                                     nicknameFromToken: sessionStorage.getItem("login")
                                 }).getElem();
@@ -163,12 +173,11 @@ window.onload = function () {
                                 let to = messageList.scrollHeight - messageList.scrollTop - messageList.clientHeight;
 
                                 animate({
-                                    duration: 1000,
+                                    duration: 300,
                                     timing: circEaseOut,
                                     draw: function(progress) {
-                                        progress = isNaN(progress) ? 0: progress;
+                                        progress = isNaN(progress) ? 0 : progress;
                                         messageList.scrollTop = from + to * progress ;
-                                        console.log(progress);
                                     }
                                 });
 

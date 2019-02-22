@@ -1,5 +1,10 @@
 window.onload = function () {
 
+    let fieldsetRegister = document.querySelector(".login-fieldset.sign-up");
+    fieldsetRegister.style.display = "none";
+    let fieldsetLogin = document.querySelector(".login-fieldset.sign-in");
+    // fieldsetLogin.style.display = "none";
+
     let formDOMRegister = document.getElementsByName("registration")[0];
     formDOMRegister.onsubmit = function() {
         let form = new FormData(formDOMRegister);
@@ -11,17 +16,20 @@ window.onload = function () {
                 {
                     try{
                         alert("Успешно");
-                        formDOMRegister.submit();
                     } catch (e) {
-                        alert(e);
+                        alert("Не корректные логин или пароль");
                     }
                 } else {
-                    alert("Не корректные логин или пароль");
+                    alert(xhr.status+": "+xhr.statusText);
                 }
             }
         }
         xhr.send(form);
         return false;
+    }
+    formDOMRegister.elements.changeType.onclick = function() {
+        fieldsetRegister.style.display = "none";
+        fieldsetLogin.style.display = "";
     }
 
     let formDOMLogin = document.getElementsByName("autorisation")[0];
@@ -35,7 +43,7 @@ window.onload = function () {
                 {
                     try{
                         let respObj = JSON.parse(xhr.responseText);
-                        alert("Успешно");
+                        // alert("Успешно");
                         sessionStorage.setItem('token', respObj.token);
                         sessionStorage.setItem('login', formDOMLogin.login.value);
                         formDOMLogin.submit();
@@ -43,12 +51,16 @@ window.onload = function () {
                         alert(e);
                     }
                 } else {
-                    alert("Не правильный логин или пароль");
+                    alert(xhr.status+": "+xhr.statusText);
                 }
             }
         }
         xhr.send(form);
         return false;
+    }
+    formDOMLogin.elements.changeType.onclick = function() {
+        fieldsetLogin.style.display = "none";
+        fieldsetRegister.style.display = "";
     }
 
 }

@@ -80,7 +80,7 @@ body {
 
     background-color: #f66565;
     /* https://www.eggradients.com/?d49dd445_page=3 */
-    background-image: linear-gradient(125deg, #6a3dfd, #f66565);
+    background-image: linear-gradient(125deg, #EB3349, #F45C43);
     background-size: cover;
 }
 
@@ -95,6 +95,125 @@ body {
     border-top-right-radius: 1.5rem;
     background-color: rgba(255, 255, 255, 0.15);
     box-shadow: 0 0 5.625rem 1.875rem rgba(0, 0, 0, 0.07); 
+}
+
+
+/*  АВТОРИЗАЦИЯ */
+.login-forms {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    margin: -1.6rem;
+}
+
+.login-forms .form-wrap{
+    position: absolute;
+    top: -10rem; left: 0; right: 0; bottom: 0;
+    margin: auto;
+    width: 25rem;
+    height: 30rem;
+}
+
+.login-forms .notice {
+    margin: 2rem 0;
+    color: #00000054;
+}
+
+.login-forms .login-fieldset {
+    background-color: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 0 5.625rem 1.875rem rgba(0, 0, 0, 0.27); 
+
+    border-color: transparent;
+    border-radius: 1.5rem;
+
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.login-forms .legend {
+    display: block;
+    width: 100%;
+
+    padding: 1.5rem;;
+
+    color: white;
+    font-weight: bold;
+    font-size: 1.8rem;
+
+    border-radius: 1.5rem;
+    background-color: #EB3349;
+    box-shadow: 0 0 5.625rem 1.875rem rgba(0, 0, 0, 0.27); 
+}
+
+.login-forms .form {
+    margin: 2rem;
+    margin-top: 1rem;
+}
+
+.login-forms .input {
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+
+    padding: 1rem;
+    padding-left: 0;
+
+    border-bottom: 0.2rem solid #EB3349;
+    background-color: transparent;
+}
+
+.login-forms .input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+    color: #EB3349;
+}
+.login-forms .input::-moz-placeholder { /* Firefox 19+ */
+    color: #EB3349;
+}
+.login-forms .input:-ms-input-placeholder { /* IE 10+ */
+    color: #EB3349;
+}
+.login-forms .input:-moz-placeholder { /* Firefox 18- */
+    color: #EB3349;
+}
+
+.login-forms .change-button {
+    display: block;
+    margin: 0 auto;
+    margin-top: 1rem;
+
+    color: #EB3349;
+    font-size: 1.4rem;
+    text-align: center;
+
+    background-color: transparent;
+}
+
+.login-forms .change-button:hover {
+    color: #F45C43; 
+}
+
+.login-forms .submit-button {
+    display: block;
+    margin-top: 1.5rem;
+
+    width: 100%;
+    padding: 1rem;
+    
+    border-radius: 1.5rem;
+    border: 0.2rem solid #EB3349;
+    
+    color: #EB3349;
+    text-transform: uppercase;
+    font-weight: bold;
+    
+    background-color: transparent;
+    cursor: pointer;
+
+    transition: background-color 0.25s, color 0.25s;
+}
+
+.login-forms .submit-button:hover{
+    background-color: #EB3349;
+    color: white;
 }
 
 /* ШАПКА */
@@ -147,7 +266,8 @@ body {
 }
 
 .menu .profile {
-    color: #fbb78e
+    color: #f99a5f;
+    font-weight: bold;
 }
 
 .menu .tab-list {
@@ -206,10 +326,10 @@ body {
 }
 
 .message-list .message{
-    margin: 2.5rem;
-    padding: 2rem;
+    margin: 1.5rem;
+    padding: 1.5rem;
 
-    width: 45.9%;
+    width: 48%;
 
     border-radius: 1.5rem;
 
@@ -238,8 +358,8 @@ body {
 
 .message-list .nickname {
     font-weight: bold;
-    font-size: 2rem;
-    margin-bottom: 1rem;
+    font-size: 1.4rem;
+    /* margin-bottom: 1rem; */
 }
 
 .message-list .accept .nickname {
@@ -252,7 +372,7 @@ body {
 
 .message-list .date-time {
     color: #737373;
-    font-size: 1.6rem;
+    font-size: 1.2rem;
 }
 
 .message-list .date-time .time {
@@ -262,7 +382,7 @@ body {
 /* ПОЛЕ ДЛЯ ВВОДА СООБЩЕНИЯ */
 
 .chat-box .message-input {
-    height: 10rem;
+    height: 8rem;
     display: flex;
 }
 
@@ -293,15 +413,15 @@ body {
     flex: 1;
 
     color: #242424;
-    font-size: 2rem;
+    font-size: 1.6rem;
 
     background-color: transparent;
 }
 
 .chat-box .avatar-wrap,
 .chat-box .send-message {
-    width: 10rem; 
-    max-width: 10rem;
+    width: 8rem; 
+    max-width: 8rem;
 }
 
 .chat-box .send-message {
@@ -309,4 +429,5 @@ body {
     background-image: url(../images/send.png);
     background-repeat: no-repeat;
     background-position: center;
+    background-size: 40%;
 }
