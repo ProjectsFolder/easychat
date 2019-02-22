@@ -105,7 +105,7 @@ window.onload = function () {
                         let lastItem = respObj[respObj.length-1];
                         
                         if (lastItem.id !== lastMessageID) {
-                            
+
                             if (getAll) {
                                 respObj.forEach(item => {
                                     let message = new Message({
@@ -117,6 +117,8 @@ window.onload = function () {
 
                                     lastMessageID = item.id;
                                     messageList.appendChild(message);
+
+                                    messageList.scrollTop  = messageList.scrollHeight;
                                 });
                             } else {
                                 let message = new Message({
@@ -128,9 +130,50 @@ window.onload = function () {
 
                                 lastMessageID = lastItem.id;
                                 messageList.appendChild(message);
+
+
+                                // обычный вариант
+                                function circ(timeFraction) {
+                                    return 1 - Math.sin(Math.acos(timeFraction))
+                                }
+                                // преобразователь в easeOut
+                                function makeEaseOut(timing) {
+                                    return function(timeFraction) {
+                                        return 1 - timing(1 - timeFraction);
+                                    }
+                                }
+                                var circEaseOut = makeEaseOut(circ);
+
+                                function animate(options) {
+                                    var start = performance.now();
+                                    requestAnimationFrame(function animate(time) {
+                                      var timeFraction = (time - start) / options.duration;
+                                      if (timeFraction > 1) timeFraction = 1;
+                                  
+                                      var progress = options.timing(timeFraction)
+                                      options.draw(progress);
+                                      if (timeFraction < 1) {
+                                        requestAnimationFrame(animate);
+                                      }
+                                  
+                                    });
+                                }
+
+                                let from = messageList.scrollTop; 
+                                let to = messageList.scrollHeight - messageList.scrollTop - messageList.clientHeight;
+
+                                animate({
+                                    duration: 1000,
+                                    timing: circEaseOut,
+                                    draw: function(progress) {
+                                        progress = isNaN(progress) ? 0: progress;
+                                        messageList.scrollTop = from + to * progress ;
+                                        console.log(progress);
+                                    }
+                                });
+
                             }
 
-                            messageList.scrollTop = messageList.scrollHeight;
                         }
                     } catch (e) {
                         if (e.name !== "TypeError")
@@ -145,10 +188,10 @@ window.onload = function () {
         xhr.send();
     }
 
+
     let messageText = document.querySelector(".message-text");
     let sendMessage = document.querySelector(".send-message");
-    sendMessage.addEventListener("click", function (event) {
-
+    function sendMEssageToServer(){
         let formData = new FormData();
         formData.append("text", messageText.value);
 
@@ -158,6 +201,16 @@ window.onload = function () {
         xhr.send(formData);
 
         messageText.value = "";
+    }
+
+    messageText.addEventListener("keydown", function (event) {
+        if (event.keyCode === 13) {
+            sendMEssageToServer();
+        }
+
+    });
+    sendMessage.addEventListener("click", function (event) {
+        sendMEssageToServer();
     });
 
     getMessages(true);
