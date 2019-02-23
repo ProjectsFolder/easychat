@@ -431,3 +431,57 @@ body {
     background-position: center;
     background-size: 40%;
 }
+
+/* МОБИЛЬНАЯ ВЕРСИЯ */
+
+@media (max-width: 600px) {
+
+    /* ШАПКА */
+
+    .header .container{
+        display: flex;
+    }
+
+    .header .menu {
+        order: 1;
+        margin-right: auto;
+    }
+
+    .header .logo {
+        order: 2;
+    }
+
+    .header .logo .logo-name {
+        font-size: 2.5rem;
+    }
+
+    .header .logo .logo-img {
+        width: 2rem;
+    }
+
+    /* СПИСОК СООБЩЕНИЙ */
+
+    .message-list .message{
+        width: 68%;
+        margin-bottom: 0;
+    }
+
+    .chat-box .message-list {
+        padding-bottom: 1.5rem;
+    }
+
+    /* ПОЛЕ ДЛЯ ВВОДА СООБЩЕНИЯ */
+    .chat-box .message-input {
+        height: 5rem;
+    }
+    .message-input .avatar-wrap {
+        display: none;
+    }
+    .chat-box .send-message {
+        width: 5rem;
+        max-width: 5rem;
+    }
+    .chat-box .message-text {
+        padding-left: 1.5rem;
+    }
+}

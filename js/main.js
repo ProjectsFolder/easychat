@@ -52,7 +52,7 @@ class Message {
         time.textContent = `${formatDateTime(dateObj.getHours())}:${formatDateTime(dateObj.getMinutes())}`;
         let date = document.createElement("time");
         date.className = "date";
-        date.textContent = `${formatDateTime(dateObj.getMonth()+1)}.${formatDateTime(dateObj.getDate())}.${formatDateTime(dateObj.getFullYear())}`;
+        date.textContent = `${formatDateTime(dateObj.getDate()+1)}.${formatDateTime(dateObj.getMonth())}.${formatDateTime(dateObj.getFullYear())}`;
 
         let textMessage = document.createElement("div");
         textMessage.className = "text";
