@@ -76,33 +76,74 @@ class Message {
     }
 }
 
+// АНИМАЦИЯ
+// обычный вариант
+function circ(timeFraction) {
+    return 1 - Math.sin(Math.acos(timeFraction))
+}
+// преобразователь в easeOut
+function makeEaseOut(timing) {
+    return function(timeFraction) {
+        return 1 - timing(1 - timeFraction);
+    }
+}
+var circEaseOut = makeEaseOut(circ);
+
+function animate(options) {
+    var start = performance.now();
+    requestAnimationFrame(function animate(time) {
+        var timeFraction = (time - start) / options.duration;
+        if (timeFraction > 1) timeFraction = 1;
+    
+        var progress = options.timing(timeFraction)
+        options.draw(progress);
+        if (timeFraction < 1) {
+        requestAnimationFrame(animate);
+        }
+    
+    });
+}
+
+
 window.onload = function () {
 
     let sessionToken = window.sessionStorage.getItem('token');
-    if (!sessionToken) {
+    if (sessionToken == null) {
         window.location = "login.html";
+        return;
     }
+
     let sessionLogin = window.sessionStorage.getItem('login');
     let profileName =  document.querySelector(".nav-item.profile");
     profileName.textContent = sessionLogin;
     
     let logOut = document.querySelector(".nav-item.log-out");
+    let islogOut = false;
     logOut.addEventListener("click", function() {
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", "http://localhost:52834/api/users/logout", false);
+        xhr.open("POST", "http://158.46.83.151/easychatServer/api/users/logout", true);
         xhr.setRequestHeader("Authorization", sessionToken);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200)
+                { 
+                    islogOut = true;
+                    window.sessionStorage.clear();
+                    window.location.reload();
+                }
+            }
+        }
         xhr.send();
 
-        window.sessionStorage.clear();
-        window.location.reload();
     });
 
     let messageList = document.querySelector(".message-list");
     let lastMessageID;
-
+    let newMessageCount = 0;
+    let isTabLeave = false;
     function getMessages(getAll) {
         var xhr = new XMLHttpRequest();
-        xhr.open("GET", "http://localhost:52834/api/messages", true);
+        xhr.open("GET", "http://158.46.83.151/easychatServer/api/messages", true);
         xhr.setRequestHeader("Authorization", sessionToken);
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4) {
@@ -142,36 +183,8 @@ window.onload = function () {
                                 messageList.appendChild(message);
 
 
-                                // обычный вариант
-                                function circ(timeFraction) {
-                                    return 1 - Math.sin(Math.acos(timeFraction))
-                                }
-                                // преобразователь в easeOut
-                                function makeEaseOut(timing) {
-                                    return function(timeFraction) {
-                                        return 1 - timing(1 - timeFraction);
-                                    }
-                                }
-                                var circEaseOut = makeEaseOut(circ);
-
-                                function animate(options) {
-                                    var start = performance.now();
-                                    requestAnimationFrame(function animate(time) {
-                                      var timeFraction = (time - start) / options.duration;
-                                      if (timeFraction > 1) timeFraction = 1;
-                                  
-                                      var progress = options.timing(timeFraction)
-                                      options.draw(progress);
-                                      if (timeFraction < 1) {
-                                        requestAnimationFrame(animate);
-                                      }
-                                  
-                                    });
-                                }
-
                                 let from = messageList.scrollTop; 
                                 let to = messageList.scrollHeight - messageList.scrollTop - messageList.clientHeight;
-
                                 animate({
                                     duration: 300,
                                     timing: circEaseOut,
@@ -181,6 +194,14 @@ window.onload = function () {
                                     }
                                 });
 
+                                newMessageCount++;
+
+                                if (isTabLeave) {
+                                    document.title = "easychat (" + newMessageCount + " сообщений)";
+                                } else {
+                                    document.title = "easychat";
+                                    newMessageCount = 0;
+                                }
                             }
 
                         }
@@ -189,7 +210,12 @@ window.onload = function () {
                             alert(e);
                     }
                 } else {
-                    alert(`Возникла ошибка: ${xhr.status}`);
+                    if (islogOut == true) {
+                        xhr.abort();
+                        return;
+                    } else {
+                        alert(`Возникла ошибка: ${xhr.status}`);
+                    }
                 }
                 getMessages();
             }
@@ -197,6 +223,14 @@ window.onload = function () {
         xhr.send();
     }
 
+    window.onblur = function () {
+        isTabLeave = true;
+    };
+    window.onfocus = function () {
+        document.title = "easychat";
+        newMessageCount = 0;
+        isTabLeave = false;
+    }
 
     let messageText = document.querySelector(".message-text");
     let sendMessage = document.querySelector(".send-message");
@@ -205,13 +239,12 @@ window.onload = function () {
         formData.append("text", messageText.value);
 
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", "http://localhost:52834/api/messages", true);
+        xhr.open("POST", "http://158.46.83.151/easychatServer/api/messages", true);
         xhr.setRequestHeader("Authorization", sessionToken);
         xhr.send(formData);
 
         messageText.value = "";
     }
-
     messageText.addEventListener("keydown", function (event) {
         if (event.keyCode === 13) {
             sendMEssageToServer();
