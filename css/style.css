@@ -78,9 +78,10 @@ body {
     font-family: 'Roboto';
     font-size: 1.4rem;
 
-    background-color: #f66565;
+    background-color: #EB3349;
     /* https://www.eggradients.com/?d49dd445_page=3 */
     background-image: linear-gradient(125deg, #EB3349, #F45C43);
+    /* background-image: linear-gradient(315deg, #7f53ac 0%, #647dee 74%); */
     background-size: cover;
 }
 
@@ -301,6 +302,97 @@ body {
     background-repeat: no-repeat;
 }
 
+/* МОДАЛЬНОЕ ОКНО */
+
+.modal-window {
+    display: none;
+}
+
+.overlay {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.65);
+
+    margin: -1.6rem;
+
+    z-index: 999;
+}
+
+.modal-window .avatarChange-window {
+    width: 33rem;
+    height: 51rem;
+
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    margin: auto;
+
+    background-color: rgba(255, 255, 255, 0.70);
+    border-radius: 1.5rem;
+    box-shadow: 0 0 5.625rem 1.875rem rgba(0, 0, 0, 0.07); 
+
+    padding: 1.5rem;
+}
+
+.modal-window .upload-figure {
+    margin: 0;
+    margin-bottom: 1.5rem;
+}
+
+.modal-window .upload-caption {
+    color:#737373;
+    font-size: 1.6rem;
+    margin-bottom: 1.5rem;
+}
+
+.modal-window .upload-image {
+    display: block;
+    width: 30rem;
+    height: 30rem;
+    background-color: white;
+
+    object-fit: cover;
+
+    border-radius: 1.5rem;
+    box-shadow: 0 0 5.625rem 1.875rem rgba(0, 0, 0, 0.07); 
+}
+
+.modal-window .avatar-file .file-input{
+    display: none;
+}
+
+.modal-window .avatar-file .button{
+    display: block; 
+
+    width: 100%;
+    padding: 0.8rem;
+    margin-top: 1rem;
+    
+    text-align: center;
+    font-size: 1.4rem;
+    font-family: 'Roboto';
+    color: #EB3349;
+    text-transform: uppercase;
+    font-weight: bold;
+    
+    background-color: transparent;
+    border-radius: 1.5rem;
+    cursor: pointer;
+
+    border: 0.2rem solid transparent;
+}
+
+.modal-window .avatar-file .button:hover{
+    border-color: #EB3349;
+}
+
+
+.modal-window .avatar-file .button:active{
+    background-color: #EB3349;
+    color: white;
+}
+
+
 /* СПИСОК СООБЩЕНИЙ */
 
 .main { 
@@ -398,6 +490,8 @@ body {
 }
 
 .chat-box .avatar-img {
+    cursor: pointer;
+
     display: block;
     object-fit: cover;
     object-position: bottom;

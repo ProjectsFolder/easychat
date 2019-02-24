@@ -9,7 +9,7 @@ window.onload = function () {
     formDOMRegister.onsubmit = function() {
         let form = new FormData(formDOMRegister);
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", "http://158.46.83.151/easychatServer/api/users/register", true);
+        xhr.open("POST", ConnectController.getUrl() + "api/users/register", true);
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4) {
                 if (xhr.status == 200)
@@ -36,7 +36,7 @@ window.onload = function () {
     formDOMLogin.onsubmit = function() {
         let form = new FormData(formDOMLogin);
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", "http://158.46.83.151/easychatServer/api/users/login", true);
+        xhr.open("POST", ConnectController.getUrl() + "api/users/login", true);
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4) {
                 if (xhr.status == 200)
@@ -47,7 +47,9 @@ window.onload = function () {
                         sessionStorage.setItem('token', respObj.token);
                         sessionStorage.setItem('userid', respObj.userid);
                         sessionStorage.setItem('login', formDOMLogin.login.value);
+
                         formDOMLogin.submit();
+
                     } catch (e) {
                         alert(e);
                     }

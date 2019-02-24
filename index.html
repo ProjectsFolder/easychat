@@ -5,10 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" href="css/style.css">
+    <script src="js/connectContoller.js"></script>
     <script src="js/main.js"></script>
     <title>easychat</title>
 </head>
 <body>
+    <div class="modal-window overlay">
+        <div class="avatarChange-window">
+            <figure class="upload-figure">
+                <figcaption class="upload-caption"> Загрузите ваше изображение </figcaption> 
+                <img class="upload-image" src="" alt="">
+            </figure>
+            <form class="avatar-file" name="avatarFile">
+                <label class="custom-file-input button"> 
+                    Выбрать файл 
+                    <input class="file-input" name="image" type="file">
+                </label>
+                <button class="button" name="uploadFile">Загрузить</button>
+                <button class="button" name="uploadClose">Закрыть</button>
+            </form>
+        </div>
+    </div>
     <header class="header">
         <div class="container">
             <div class="logo">
@@ -24,9 +41,9 @@
                         <li><button class="nav-item log-out">Выход</button></li>
                     </ul>
                 </nav>
-                <!-- <div class="tab-list">
-                    <button class="tab-item">#JustTalkAboutNothing</button>
-                </div> -->
+                <div class="tab-list">
+                    <!-- <button class="tab-item">#JustTalkAboutNothing</button> -->
+                </div>
             </menu>
         </div>
     </header>
@@ -37,7 +54,7 @@
             <footer class="message-input depth-effect">
                 <div class="message-wrap depth-effect">
                     <div class="avatar-wrap">
-                        <img class="avatar-img" height="50" width="50" src="images/avatars/2.jpg" alt="">
+                        <img class="avatar-img" height="50" width="50" alt="">
                     </div>
                     <input type="text" class="message-text" placeholder="Введите текст сообщения">
                 </div>

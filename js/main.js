@@ -1,4 +1,3 @@
-
 class Message {
     constructor(options) {
         this._elem;
@@ -8,6 +7,7 @@ class Message {
         this.imgSrc = options.imgSrc;
         this.time = options.time;
         this.nicknameFromToken = options.nicknameFromToken;
+        this.id = options.id;
     }
     render() {
         function formatDateTime(value) {
@@ -74,6 +74,10 @@ class Message {
         if (!this._elem) this.render();
         return this._elem;
     }
+    setSrc(src) {
+        this.imgSrc = src;
+        this._elem.querySelector(".avatar-img").src = this.imgSrc;
+    }
 }
 
 // АНИМАЦИЯ
@@ -104,9 +108,38 @@ function animate(options) {
     });
 }
 
+function getImage(userID) {
+    return new Promise( function (res,rej) {
+
+        let xhr = new XMLHttpRequest();
+        xhr.open("GET",ConnectController.getUrl()+"api/users/image/"+userID, true);
+        xhr.responseType = "blob";
+        xhr.setRequestHeader("Authorization", window.sessionStorage.getItem('token'));
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200)
+                { 
+                    var urlCreator = window.URL;
+                    var imageUrl = urlCreator.createObjectURL(xhr.response);
+
+                    res({
+                        id: userID,
+                        url: imageUrl
+                    });
+                } else {
+                    res({
+                        id: userID,
+                        url: "images/avatars/blank.jpg"
+                    });
+                }
+            }
+        }
+        
+        xhr.send();
+    })
+}
 
 window.onload = function () {
-
     let sessionToken = window.sessionStorage.getItem('token');
     if (sessionToken == null) {
         window.location = "login.html";
@@ -114,14 +147,21 @@ window.onload = function () {
     }
 
     let sessionLogin = window.sessionStorage.getItem('login');
+    let sessionUserID = window.sessionStorage.getItem('userid');
+
     let profileName =  document.querySelector(".nav-item.profile");
     profileName.textContent = sessionLogin;
+
+
+    let avatarImg = document.querySelector(".message-input .avatar-img");
+    getImage(sessionUserID)
+        .then( result => { avatarImg.src = result.url; });
     
     let logOut = document.querySelector(".nav-item.log-out");
     let islogOut = false;
     logOut.addEventListener("click", function() {
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", "http://158.46.83.151/easychatServer/api/users/logout", true);
+        xhr.open("POST", ConnectController.getUrl()+"api/users/logout", true);
         xhr.setRequestHeader("Authorization", sessionToken);
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4) {
@@ -134,16 +174,70 @@ window.onload = function () {
             }
         }
         xhr.send();
-
     });
 
-    let messageList = document.querySelector(".message-list");
+
     let lastMessageID;
+    let messageCollection = [];
+    let userIdSet = new Set();
+    let urls;
+    let messageList = document.querySelector(".message-list");
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", ConnectController.getUrl()+"api/messages", true);
+    xhr.setRequestHeader("Authorization", sessionToken);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4) {
+            if (xhr.status == 200)
+            {
+                let respObj = JSON.parse(xhr.responseText);
+             
+                respObj.forEach(item => {
+                    let message = new Message({
+                        nickname: item.username,
+                        text: item.text,
+                        time: item.timecreated ,
+                        nicknameFromToken: sessionStorage.getItem("login"),
+                        id: item.userid
+                    });
+
+                    lastMessageID = item.id;
+                    messageCollection.push(message);
+
+                    userIdSet.add(item.userid);
+                });
+
+                urls = Array.from(userIdSet);
+
+                Promise.all(urls.map(getImage))
+                    .then( result => {
+
+                        for (let i=messageCollection.length-5; i<messageCollection.length; i++) {
+
+                            for (let j=0; j<result.length; j++) {
+
+                                if (messageCollection[i].id == result[j].id) {
+
+                                    messageList.appendChild(messageCollection[i].getElem());
+                                    messageCollection[i].setSrc(result[j].url)
+                                    
+                                    messageList.scrollTop  = messageList.scrollHeight;
+                                }
+                            }
+                        }
+
+                        urls = result;
+                        getNewMessage();
+                    });
+            }
+        }
+    }
+    xhr.send();
+
     let newMessageCount = 0;
     let isTabLeave = false;
-    function getMessages(getAll) {
+    function getNewMessage() {
         var xhr = new XMLHttpRequest();
-        xhr.open("GET", "http://158.46.83.151/easychatServer/api/messages", true);
+        xhr.open("GET", ConnectController.getUrl()+"api/messages", true);
         xhr.setRequestHeader("Authorization", sessionToken);
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4) {
@@ -155,53 +249,49 @@ window.onload = function () {
                         
                         if (lastItem.id !== lastMessageID) {
 
-                            if (getAll) {
-                                respObj.forEach(item => {
-                                    let message = new Message({
-                                        nickname: item.username,
-                                        text: item.text,
-                                        time: item.timecreated ,
-                                        imgSrc: "images/avatars/2.jpg",
-                                        nicknameFromToken: sessionStorage.getItem("login")
-                                    }).getElem();
+                            let message = new Message({
+                                nickname: lastItem.username,
+                                text: lastItem.text,
+                                time: lastItem.timecreated,
+                                nicknameFromToken: sessionStorage.getItem("login"),
+                                id: lastItem.userid
+                            });
 
-                                    lastMessageID = item.id;
-                                    messageList.appendChild(message);
+                            lastMessageID = lastItem.id;
 
-                                    messageList.scrollTop  = messageList.scrollHeight;
-                                });
-                            } else {
-                                let message = new Message({
-                                    nickname: lastItem.username,
-                                    text: lastItem.text,
-                                    time: lastItem.timecreated,
-                                    imgSrc: "images/avatars/2.jpg",
-                                    nicknameFromToken: sessionStorage.getItem("login")
-                                }).getElem();
+                            messageList.appendChild(message.getElem());
 
-                                lastMessageID = lastItem.id;
-                                messageList.appendChild(message);
-
-
-                                let from = messageList.scrollTop; 
-                                let to = messageList.scrollHeight - messageList.scrollTop - messageList.clientHeight;
-                                animate({
-                                    duration: 300,
-                                    timing: circEaseOut,
-                                    draw: function(progress) {
-                                        progress = isNaN(progress) ? 0 : progress;
-                                        messageList.scrollTop = from + to * progress ;
-                                    }
-                                });
-
-                                newMessageCount++;
-
-                                if (isTabLeave) {
-                                    document.title = "easychat (" + newMessageCount + " сообщений)";
-                                } else {
-                                    document.title = "easychat";
-                                    newMessageCount = 0;
+                            let from = messageList.scrollTop; 
+                            let to = messageList.scrollHeight - messageList.scrollTop - messageList.clientHeight;
+                            animate({
+                                duration: 300,
+                                timing: circEaseOut,
+                                draw: function(progress) {
+                                    progress = isNaN(progress) ? 0 : progress;
+                                    messageList.scrollTop = from + to * progress ;
                                 }
+                            });
+
+                            newMessageCount++;
+                            if (isTabLeave) {
+                                document.title = "easychat (" + newMessageCount + " сообщений)";
+                            } else {
+                                document.title = "easychat";
+                                newMessageCount = 0;
+                            }
+
+                            
+                            for (let j=0; j<urls.length; j++) {
+                                if (message.id == urls[j].id) {
+                                    message.setSrc(urls[j].url)
+                                }
+                            }
+                            if (message.imgSrc == undefined) {
+                                getImage(message.id)
+                                    .then( result => {
+                                        urls.push(result.url);
+                                        message.setSrc( result.url);
+                                    });
                             }
 
                         }
@@ -217,7 +307,7 @@ window.onload = function () {
                         alert(`Возникла ошибка: ${xhr.status}`);
                     }
                 }
-                getMessages();
+                getNewMessage();
             }
         }
         xhr.send();
@@ -239,7 +329,7 @@ window.onload = function () {
         formData.append("text", messageText.value);
 
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", "http://158.46.83.151/easychatServer/api/messages", true);
+        xhr.open("POST", ConnectController.getUrl()+"api/messages", true);
         xhr.setRequestHeader("Authorization", sessionToken);
         xhr.send(formData);
 
@@ -255,5 +345,45 @@ window.onload = function () {
         sendMEssageToServer();
     });
 
-    getMessages(true);
+
+    let profileButton = document.querySelector(".menu .profile");
+    let avatarButton = document.querySelector(".chat-box .avatar-img");
+    let modalWindow = document.querySelector(".modal-window");
+    let previewAvatar = document.querySelector(".upload-image");
+    let formDOMAvatar = document.getElementsByName("avatarFile")[0];
+    formDOMAvatar.onsubmit = function () {
+        return false;
+    }
+    formDOMAvatar.image.onchange = function () {
+        var reader  = new FileReader();
+        reader.readAsDataURL(formDOMAvatar.image.files[0]);
+        reader.onloadend = function () {
+            previewAvatar.src = reader.result;
+        }
+    }
+    avatarButton.onclick = profileButton.onclick = function() {
+        modalWindow.style.display = "block";
+    }
+    formDOMAvatar.uploadClose.onclick = function () {
+        modalWindow.style.display = "none";
+    }
+    formDOMAvatar.uploadFile.onclick = function () {
+        let formData = new FormData(formDOMAvatar);
+        var xhr = new XMLHttpRequest();
+        xhr.open("PUT", ConnectController.getUrl()+"api/users/image", true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200) {
+
+                    getImage(sessionUserID)
+                        .then( result => {
+                        avatarImg.src = result.url;
+                    });
+
+                }
+            }
+        }
+        xhr.setRequestHeader("Authorization", sessionToken);
+        xhr.send(formData);
+    }
  }
