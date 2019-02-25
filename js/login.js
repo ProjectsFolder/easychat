@@ -9,7 +9,7 @@ window.onload = function () {
     formDOMRegister.onsubmit = function() {
         let form = new FormData(formDOMRegister);
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", ConnectController.getUrl() + "api/users/register", true);
+        xhr.open("POST", SettingController.getUrl() + "api/users/register", true);
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4) {
                 if (xhr.status == 200)
@@ -36,7 +36,7 @@ window.onload = function () {
     formDOMLogin.onsubmit = function() {
         let form = new FormData(formDOMLogin);
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", ConnectController.getUrl() + "api/users/login", true);
+        xhr.open("POST", SettingController.getUrl() + "api/users/login", true);
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4) {
                 if (xhr.status == 200)

@@ -112,7 +112,7 @@ function getImage(userID) {
     return new Promise( function (res,rej) {
 
         let xhr = new XMLHttpRequest();
-        xhr.open("GET",ConnectController.getUrl()+"api/users/image/"+userID, true);
+        xhr.open("GET",SettingController.getUrl()+"api/users/image/"+userID, true);
         xhr.responseType = "blob";
         xhr.setRequestHeader("Authorization", window.sessionStorage.getItem('token'));
         xhr.onreadystatechange = function() {
@@ -161,7 +161,7 @@ window.onload = function () {
     let islogOut = false;
     logOut.addEventListener("click", function() {
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", ConnectController.getUrl()+"api/users/logout", true);
+        xhr.open("POST", SettingController.getUrl()+"api/users/logout", true);
         xhr.setRequestHeader("Authorization", sessionToken);
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4) {
@@ -183,7 +183,7 @@ window.onload = function () {
     let urls;
     let messageList = document.querySelector(".message-list");
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", ConnectController.getUrl()+"api/messages", true);
+    xhr.open("GET", SettingController.getUrl()+"api/messages", true);
     xhr.setRequestHeader("Authorization", sessionToken);
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4) {
@@ -214,8 +214,6 @@ window.onload = function () {
 
                             for (let j=0; j<result.length; j++) {
 
-                                console.dir(result);
-
                                 if (messageCollection[i].id == result[j].id) {
 
                                     messageList.appendChild(messageCollection[i].getElem());
@@ -238,7 +236,7 @@ window.onload = function () {
     let isTabLeave = false;
     function getNewMessage() {
         var xhr = new XMLHttpRequest();
-        xhr.open("GET", ConnectController.getUrl()+"api/messages?begin="+lastMessageTime, true);
+        xhr.open("GET", SettingController.getUrl()+"api/messages?begin="+lastMessageTime, true);
         xhr.setRequestHeader("Authorization", sessionToken);
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4) {
@@ -288,62 +286,15 @@ window.onload = function () {
                             if (message.imgSrc == undefined) {
                                 getImage(message.id)
                                     .then( result => {
-                                        urls.push(result.url);
+                                        urls.push({
+                                            id: message.id,
+                                            url:result.url
+                                        });
                                         message.setSrc( result.url);
+                                        console.dir(urls);
                                     });
                             }
                         });
-
-                        // let lastItem = respObj[respObj.length-1];
-                        
-                        // if (lastItem.id !== lastMessageID) {
-
-                        //     let message = new Message({
-                        //         nickname: lastItem.username,
-                        //         text: lastItem.text,
-                        //         time: lastItem.timecreated,
-                        //         nicknameFromToken: sessionStorage.getItem("login"),
-                        //         id: lastItem.userid
-                        //     });
-
-                        //     lastMessageTime = message.time;
-
-                        //     messageList.appendChild(message.getElem());
-
-                        //     let from = messageList.scrollTop; 
-                        //     let to = messageList.scrollHeight - messageList.scrollTop - messageList.clientHeight;
-                        //     animate({
-                        //         duration: 300,
-                        //         timing: circEaseOut,
-                        //         draw: function(progress) {
-                        //             progress = isNaN(progress) ? 0 : progress;
-                        //             messageList.scrollTop = from + to * progress ;
-                        //         }
-                        //     });
-
-                        //     newMessageCount++;
-                        //     if (isTabLeave) {
-                        //         document.title = "easychat (" + newMessageCount + " сообщений)";
-                        //     } else {
-                        //         document.title = "easychat";
-                        //         newMessageCount = 0;
-                        //     }
-
-                            
-                        //     for (let j=0; j<urls.length; j++) {
-                        //         if (message.id == urls[j].id) {
-                        //             message.setSrc(urls[j].url)
-                        //         }
-                        //     }
-                        //     if (message.imgSrc == undefined) {
-                        //         getImage(message.id)
-                        //             .then( result => {
-                        //                 urls.push(result.url);
-                        //                 message.setSrc( result.url);
-                        //             });
-                        //     }
-
-                        // }
                     } catch (e) {
                         if (e.name !== "TypeError")
                             alert(e);
@@ -378,7 +329,7 @@ window.onload = function () {
         formData.append("text", messageText.value);
 
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", ConnectController.getUrl()+"api/messages", true);
+        xhr.open("POST", SettingController.getUrl()+"api/messages", true);
         xhr.setRequestHeader("Authorization", sessionToken);
         xhr.send(formData);
 
@@ -419,7 +370,7 @@ window.onload = function () {
     formDOMAvatar.uploadFile.onclick = function () {
         let formData = new FormData(formDOMAvatar);
         var xhr = new XMLHttpRequest();
-        xhr.open("PUT", ConnectController.getUrl()+"api/users/image", true);
+        xhr.open("PUT", SettingController.getUrl()+"api/users/image", true);
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4) {
                 if (xhr.status == 200) {
