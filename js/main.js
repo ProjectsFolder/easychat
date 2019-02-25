@@ -177,7 +177,7 @@ window.onload = function () {
     });
 
 
-    let lastMessageID;
+    let lastMessageTime;
     let messageCollection = [];
     let userIdSet = new Set();
     let urls;
@@ -200,10 +200,9 @@ window.onload = function () {
                         id: item.userid
                     });
 
-                    lastMessageID = item.id;
+                    lastMessageTime = message.time;
                     messageCollection.push(message);
-
-                    userIdSet.add(item.userid);
+                    userIdSet.add(message.id);
                 });
 
                 urls = Array.from(userIdSet);
@@ -211,9 +210,11 @@ window.onload = function () {
                 Promise.all(urls.map(getImage))
                     .then( result => {
 
-                        for (let i=messageCollection.length-5; i<messageCollection.length; i++) {
+                        for (let i=0; i<messageCollection.length; i++) {
 
                             for (let j=0; j<result.length; j++) {
+
+                                console.dir(result);
 
                                 if (messageCollection[i].id == result[j].id) {
 
@@ -237,7 +238,7 @@ window.onload = function () {
     let isTabLeave = false;
     function getNewMessage() {
         var xhr = new XMLHttpRequest();
-        xhr.open("GET", ConnectController.getUrl()+"api/messages", true);
+        xhr.open("GET", ConnectController.getUrl()+"api/messages?begin="+lastMessageTime, true);
         xhr.setRequestHeader("Authorization", sessionToken);
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4) {
@@ -245,19 +246,17 @@ window.onload = function () {
                 {
                     try{
                         let respObj = JSON.parse(xhr.responseText);
-                        let lastItem = respObj[respObj.length-1];
-                        
-                        if (lastItem.id !== lastMessageID) {
 
+                        respObj.forEach(item => {
                             let message = new Message({
-                                nickname: lastItem.username,
-                                text: lastItem.text,
-                                time: lastItem.timecreated,
+                                nickname: item.username,
+                                text: item.text,
+                                time: item.timecreated ,
                                 nicknameFromToken: sessionStorage.getItem("login"),
-                                id: lastItem.userid
+                                id: item.userid
                             });
-
-                            lastMessageID = lastItem.id;
+        
+                            lastMessageTime = message.time;
 
                             messageList.appendChild(message.getElem());
 
@@ -293,8 +292,58 @@ window.onload = function () {
                                         message.setSrc( result.url);
                                     });
                             }
+                        });
 
-                        }
+                        // let lastItem = respObj[respObj.length-1];
+                        
+                        // if (lastItem.id !== lastMessageID) {
+
+                        //     let message = new Message({
+                        //         nickname: lastItem.username,
+                        //         text: lastItem.text,
+                        //         time: lastItem.timecreated,
+                        //         nicknameFromToken: sessionStorage.getItem("login"),
+                        //         id: lastItem.userid
+                        //     });
+
+                        //     lastMessageTime = message.time;
+
+                        //     messageList.appendChild(message.getElem());
+
+                        //     let from = messageList.scrollTop; 
+                        //     let to = messageList.scrollHeight - messageList.scrollTop - messageList.clientHeight;
+                        //     animate({
+                        //         duration: 300,
+                        //         timing: circEaseOut,
+                        //         draw: function(progress) {
+                        //             progress = isNaN(progress) ? 0 : progress;
+                        //             messageList.scrollTop = from + to * progress ;
+                        //         }
+                        //     });
+
+                        //     newMessageCount++;
+                        //     if (isTabLeave) {
+                        //         document.title = "easychat (" + newMessageCount + " сообщений)";
+                        //     } else {
+                        //         document.title = "easychat";
+                        //         newMessageCount = 0;
+                        //     }
+
+                            
+                        //     for (let j=0; j<urls.length; j++) {
+                        //         if (message.id == urls[j].id) {
+                        //             message.setSrc(urls[j].url)
+                        //         }
+                        //     }
+                        //     if (message.imgSrc == undefined) {
+                        //         getImage(message.id)
+                        //             .then( result => {
+                        //                 urls.push(result.url);
+                        //                 message.setSrc( result.url);
+                        //             });
+                        //     }
+
+                        // }
                     } catch (e) {
                         if (e.name !== "TypeError")
                             alert(e);
