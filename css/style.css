@@ -217,6 +217,10 @@ body {
     color: white;
 }
 
+.sign-up {
+    display: none;
+}
+
 /* ШАПКА */
 
 .logo { 

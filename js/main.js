@@ -10,65 +10,76 @@ class Message {
         this.id = options.id;
     }
     render() {
+        
+        let allElements =  createAllElements(this._elem);
+        allElements = setAllProperties(allElements, this);
+        allElements = appendAllChild(allElements);
+
+        this._elem = allElements.elem;
+
+        function createAllElements(elem) {
+            return {
+                elem: document.createElement("article"),
+                headerMessage: document.createElement("header"),
+                avatarWrap: document.createElement("div"),
+                avatarImg: document.createElement("img"),
+                aboutInfo: document.createElement("div"),
+                nickname: document.createElement("div"),
+                dateTime: document.createElement("div"),
+                time: document.createElement("time"),
+                date: document.createElement("time"),
+                textMessage: document.createElement("div")
+            }
+        }
+        
+        function setAllProperties(allElements, self) {
+            allElements.elem.className = "message depth-effect";
+            let messageType = getMessageType(self);
+            allElements.elem.classList.add(messageType);
+            
+            allElements.headerMessage.className = "header-message";
+            allElements.avatarWrap.className = "avatar-wrap";
+            allElements.avatarImg.className = "avatar-img";
+            allElements.avatarImg.height = 40;
+            allElements.avatarImg.width = 40;
+            allElements.avatarImg.src = self.imgSrc;
+    
+            allElements.aboutInfo.className = "about-info";
+            allElements.nickname.className = "nickname";
+            allElements.nickname.textContent = self.nickname;
+            allElements.dateTime.className = "date-time";
+
+            let dateObj = new Date(self.time*1000);
+            allElements.time.className = "time";
+            allElements.time.textContent = `${formatDateTime(dateObj.getHours())}:${formatDateTime(dateObj.getMinutes())}`;
+            allElements.date.className = "date";
+            allElements.date.textContent = `${formatDateTime(dateObj.getDate()+1)}.${formatDateTime(dateObj.getMonth())}.${formatDateTime(dateObj.getFullYear())}`;
+            allElements.textMessage.className = "text";
+            allElements.textMessage.textContent = self.text;
+
+            return allElements;
+        }
+
+        function appendAllChild(allElements) {
+            allElements.elem.appendChild(allElements.headerMessage);
+            allElements.headerMessage.appendChild(allElements.avatarWrap);
+            allElements.avatarWrap.appendChild(allElements.avatarImg);
+            allElements.headerMessage.appendChild(allElements.aboutInfo);
+            allElements.aboutInfo.appendChild(allElements.nickname);
+            allElements.aboutInfo.appendChild(allElements.dateTime);
+            allElements.dateTime.appendChild(allElements.time);
+            allElements.dateTime.appendChild(allElements.date);
+            allElements.elem.appendChild(allElements.textMessage);
+
+            return allElements;
+        }
+
+        function getMessageType(self) {
+            return (self.nicknameFromToken ===  self.nickname) ? "sent" : "accept";
+        }
         function formatDateTime(value) {
             return ('0' + value).slice(-2);
         }
-
-        this._elem = document.createElement("article");
-        this._elem.className = "message depth-effect";
-
-        let messageType;
-        // console.log(this.nicknameFromToken + " " + this.nickname);
-        if (this.nicknameFromToken ===  this.nickname) {
-            messageType = "sent";
-        } else {
-            messageType = "accept";
-        }
-        this._elem.classList.add(messageType);
-        
-        let headerMessage = document.createElement("header");
-        headerMessage.className = "header-message";
-
-        let avatarWrap = document.createElement("div");
-        avatarWrap.className = "avatar-wrap";
-        let avatarImg = document.createElement("img");
-        avatarImg.className = "avatar-img";
-        avatarImg.height = 40;
-        avatarImg.width = 40;
-        avatarImg.src = this.imgSrc;
-
-        let aboutInfo = document.createElement("div");
-        aboutInfo.className = "about-info";
-        let nickname = document.createElement("div");
-        nickname.className = "nickname";
-        nickname.textContent = this.nickname;
-        let dateTime = document.createElement("div");
-        dateTime.className = "date-time";
-        let dateObj = new Date(this.time*1000);
-   
-
-        let time = document.createElement("time");
-        time.className = "time";
-        time.textContent = `${formatDateTime(dateObj.getHours())}:${formatDateTime(dateObj.getMinutes())}`;
-        let date = document.createElement("time");
-        date.className = "date";
-        date.textContent = `${formatDateTime(dateObj.getDate()+1)}.${formatDateTime(dateObj.getMonth())}.${formatDateTime(dateObj.getFullYear())}`;
-
-        let textMessage = document.createElement("div");
-        textMessage.className = "text";
-        textMessage.textContent = this.text;
-
-
-        this._elem.appendChild(headerMessage);
-        headerMessage.appendChild(avatarWrap);
-        avatarWrap.appendChild(avatarImg);
-        headerMessage.appendChild(aboutInfo);
-        aboutInfo.appendChild(nickname);
-        aboutInfo.appendChild(dateTime);
-        dateTime.appendChild(time);
-        dateTime.appendChild(date);
-        this._elem.appendChild(textMessage);
-
     }
     getElem() {
         if (!this._elem) this.render();
@@ -129,7 +140,7 @@ function getImage(userID) {
                 } else {
                     res({
                         id: userID,
-                        url: "images/avatars/blank.jpg"
+                        url: SettingController.getDefaultAvatar()
                     });
                 }
             }
@@ -183,7 +194,7 @@ window.onload = function () {
     let urls;
     let messageList = document.querySelector(".message-list");
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", SettingController.getUrl()+"api/messages", true);
+    xhr.open("GET", SettingController.getUrl()+"api/messages?limit="+SettingController.getNumberLimitMessage(), true);
     xhr.setRequestHeader("Authorization", sessionToken);
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4) {

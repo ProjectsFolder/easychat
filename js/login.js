@@ -1,9 +1,7 @@
 window.onload = function () {
 
     let fieldsetRegister = document.querySelector(".login-fieldset.sign-up");
-    fieldsetRegister.style.display = "none";
     let fieldsetLogin = document.querySelector(".login-fieldset.sign-in");
-    // fieldsetLogin.style.display = "none";
 
     let formDOMRegister = document.getElementsByName("registration")[0];
     formDOMRegister.onsubmit = function() {
@@ -14,11 +12,7 @@ window.onload = function () {
             if (xhr.readyState == 4) {
                 if (xhr.status == 200)
                 {
-                    try{
-                        alert("Успешно");
-                    } catch (e) {
-                        alert("Не корректные логин или пароль");
-                    }
+                    alert("Успешно");
                 } else {
                     alert(xhr.status+": "+xhr.statusText);
                 }
@@ -29,7 +23,7 @@ window.onload = function () {
     }
     formDOMRegister.elements.changeType.onclick = function() {
         fieldsetRegister.style.display = "none";
-        fieldsetLogin.style.display = "";
+        fieldsetLogin.style.display = "block";
     }
 
     let formDOMLogin = document.getElementsByName("autorisation")[0];
@@ -41,18 +35,13 @@ window.onload = function () {
             if (xhr.readyState == 4) {
                 if (xhr.status == 200)
                 {
-                    try{
-                        let respObj = JSON.parse(xhr.responseText);
-                        // alert("Успешно");
-                        sessionStorage.setItem('token', respObj.token);
-                        sessionStorage.setItem('userid', respObj.userid);
-                        sessionStorage.setItem('login', formDOMLogin.login.value);
+                    let respObj = JSON.parse(xhr.responseText);
 
-                        formDOMLogin.submit();
+                    sessionStorage.setItem('token', respObj.token);
+                    sessionStorage.setItem('userid', respObj.userid);
+                    sessionStorage.setItem('login', formDOMLogin.login.value);
 
-                    } catch (e) {
-                        alert(e);
-                    }
+                    formDOMLogin.submit();
                 } else {
                     alert(xhr.status+": "+xhr.statusText);
                 }
@@ -63,7 +52,7 @@ window.onload = function () {
     }
     formDOMLogin.elements.changeType.onclick = function() {
         fieldsetLogin.style.display = "none";
-        fieldsetRegister.style.display = "";
+        fieldsetRegister.style.display = "block";
     }
 
 }
