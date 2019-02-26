@@ -91,33 +91,37 @@ class Message {
     }
 }
 
-// АНИМАЦИЯ
-// обычный вариант
-function circ(timeFraction) {
-    return 1 - Math.sin(Math.acos(timeFraction))
-}
-// преобразователь в easeOut
-function makeEaseOut(timing) {
-    return function(timeFraction) {
-        return 1 - timing(1 - timeFraction);
+class SmoothAnimation {
+    constructor(options) {
+        this._options = options; 
+
+        if (this._options.isEsaeOut) {
+            this._options.timing = makeEaseOut(this._options.timing);
+        }
+
+        function makeEaseOut(timing) {
+            return function(timeFraction) {
+                return 1 - timing(1 - timeFraction);
+            }
+        }
+    }
+    animate(draw) {
+        var start = performance.now();
+        let self = this;
+        requestAnimationFrame(function animate(time) {
+            var timeFraction = (time - start) / self._options.duration;
+            if (timeFraction > 1) timeFraction = 1;
+        
+            var progress = self._options.timing(timeFraction)
+            draw(progress);
+            if (timeFraction < 1) {
+                requestAnimationFrame(animate);
+            }
+        });
     }
 }
-var circEaseOut = makeEaseOut(circ);
 
-function animate(options) {
-    var start = performance.now();
-    requestAnimationFrame(function animate(time) {
-        var timeFraction = (time - start) / options.duration;
-        if (timeFraction > 1) timeFraction = 1;
-    
-        var progress = options.timing(timeFraction)
-        options.draw(progress);
-        if (timeFraction < 1) {
-        requestAnimationFrame(animate);
-        }
-    
-    });
-}
+
 
 function getImage(userID) {
     return new Promise( function (res,rej) {
@@ -254,6 +258,16 @@ window.onload = function () {
                 if (xhr.status == 200)
                 {
                     try{
+
+                        function circ(timeFraction) {
+                            return 1 - Math.sin(Math.acos(timeFraction))
+                        }
+                        let smoothAnim = new SmoothAnimation({
+                            duration: 300,
+                            timing: circ,
+                            isEsaeOut: true
+                        })
+
                         let respObj = JSON.parse(xhr.responseText);
 
                         respObj.forEach(item => {
@@ -271,14 +285,10 @@ window.onload = function () {
 
                             let from = messageList.scrollTop; 
                             let to = messageList.scrollHeight - messageList.scrollTop - messageList.clientHeight;
-                            animate({
-                                duration: 300,
-                                timing: circEaseOut,
-                                draw: function(progress) {
+                            smoothAnim.animate(function(progress) {
                                     progress = isNaN(progress) ? 0 : progress;
                                     messageList.scrollTop = from + to * progress ;
-                                }
-                            });
+                                });
 
                             newMessageCount++;
                             if (isTabLeave) {
