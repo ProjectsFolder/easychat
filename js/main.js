@@ -1,3 +1,23 @@
+window.onload = function () {
+    
+    let sessionData = loadSessionData();
+    loadUserData(sessionData.login, sessionData.userid);
+    let stateTab = {
+        isTabLeave: false,
+        newMessageCount: 0,
+        logOut: false
+    };
+    logOutListener(sessionData.token, stateTab);
+    windowBlurFocusListener(stateTab);
+    getAllMessage(sessionData, stateTab);
+    sendMessageListener(sessionData);
+    let formDOMAvatar = document.getElementsByName("avatarFile")[0];
+    let avatarModalWindow = new ModalWindow(formDOMAvatar, sessionData);
+    avatarChangeButtonListener(avatarModalWindow);
+
+ }
+
+
 class Message {
     constructor(options) {
         this._elem;
@@ -121,6 +141,214 @@ class SmoothAnimation {
     }
 }
 
+class ModalWindow {
+    constructor(elem, sessionData) {
+        let modalWindow = document.querySelector(".modal-window");
+        let previewAvatar = document.querySelector(".upload-image");
+
+        let self = this;
+
+        this.setImage = function (target) {
+            target.onchange = function() {
+                let reader  = new FileReader();
+                reader.readAsDataURL(elem.image.files[0]);
+                reader.addEventListener("load" ,function () {
+                    previewAvatar.src = reader.result;
+                });
+            }
+        }
+        this.uploadImage = function () {
+            let formData = new FormData(elem);
+            var xhr = new XMLHttpRequest();
+            xhr.open("PUT", SettingController.getUrl()+"api/users/image", true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4) {
+                    if (xhr.status == 200) {
+                        loadUserData(sessionData.login, sessionData.userid);
+                    }
+                }
+            }
+            xhr.setRequestHeader("Authorization", sessionData.token);
+            xhr.send(formData);
+        }
+        this.closeModalWindow = function () {
+            modalWindow.style.display = "none";
+        }
+        this.openModalWindow = function () {
+            modalWindow.style.display = "block";
+        }
+
+        elem.onclick = function(event) {
+            let target = event.target;
+            let action = target.getAttribute('data-action');
+            if (action) {
+              self[action](target);
+            }
+        }
+        elem.onsubmit = function () {
+            return false;
+        }
+    }
+}
+
+function sendMEssageToServer(messageText, sessionData){
+    let formData = new FormData();
+    formData.append("text", messageText.value);
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", SettingController.getUrl()+"api/messages", true);
+    xhr.setRequestHeader("Authorization", sessionData.token);
+    xhr.send(formData);
+
+    messageText.value = "";
+}
+
+function showMissedMessage(state){
+    state.newMessageCount++;
+    if (state.isTabLeave) {
+        document.title = `easychat (${state.newMessageCount} сообщений)`;
+    } else {
+        document.title = `easychat`;
+        state.newMessageCount = 0;
+    }
+}
+
+function getNewMessage(sessionData, {messageList, lastMessageTime, urls}, state) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", SettingController.getUrl()+"api/messages?begin="+lastMessageTime, true);
+    xhr.setRequestHeader("Authorization", sessionData.token);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4) {
+            if (xhr.status == 200)
+            {
+                try{
+                    function circ(timeFraction) {
+                        return 1 - Math.sin(Math.acos(timeFraction))
+                    }
+                    let smoothAnim = new SmoothAnimation({
+                        duration: 300,
+                        timing: circ,
+                        isEsaeOut: true
+                    })
+
+                    let respObj = JSON.parse(xhr.responseText);
+
+                    respObj.forEach(item => {
+                        let message = new Message({
+                            nickname: item.username,
+                            text: item.text,
+                            time: item.timecreated ,
+                            nicknameFromToken: sessionStorage.getItem("login"),
+                            id: item.userid
+                        });
+
+                        lastMessageTime = message.time;
+
+                        messageList.appendChild(message.getElem());
+
+                        let from = messageList.scrollTop; 
+                        let to = messageList.scrollHeight - messageList.scrollTop - messageList.clientHeight;
+                        smoothAnim.animate(function(progress) {
+                                progress = isNaN(progress) ? 0 : progress;
+                                messageList.scrollTop = from + to * progress ;
+                            });
+
+                        showMissedMessage(state);
+                        
+                        for (let j=0; j<urls.length; j++) {
+                            if (message.id == urls[j].id) {
+                                message.setSrc(urls[j].url)
+                            }
+                        }
+                        if (message.imgSrc == undefined) {
+                            getImage(message.id)
+                                .then( result => {
+                                    urls.push({
+                                        id: message.id,
+                                        url:result.url
+                                    });
+                                    message.setSrc( result.url);
+                                    console.dir(urls);
+                                });
+                        }
+                    });
+                } catch (e) {
+                    if (e.name !== "TypeError")
+                        alert(e);
+                }
+            } else {
+                if (state.islogOut == true) {
+                    xhr.abort();
+                    return;
+                } else {
+                    alert(`Возникла ошибка: ${xhr.status}`);
+                }
+            }
+            getNewMessage(sessionData, {messageList, lastMessageTime, urls}, state);
+        }
+    }
+    xhr.send();
+}
+
+function getAllMessage(sessionData, state) {
+    let messageList = document.querySelector(".message-list");
+    let lastMessageTime;
+    let urls;
+
+    let userIdSet = new Set();
+    let messageCollection = [];
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", SettingController.getUrl()+"api/messages?limit="+SettingController.getNumberLimitMessage(), true);
+    xhr.setRequestHeader("Authorization", sessionData.token);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4) {
+            if (xhr.status == 200)
+            {
+                let respObj = JSON.parse(xhr.responseText);
+             
+                respObj.forEach(item => {
+                    let message = new Message({
+                        nickname: item.username,
+                        text: item.text,
+                        time: item.timecreated ,
+                        nicknameFromToken: sessionStorage.getItem("login"),
+                        id: item.userid
+                    });
+
+                    lastMessageTime = message.time;
+                    messageCollection.push(message);
+                    userIdSet.add(message.id);
+                });
+
+                urls = Array.from(userIdSet);
+
+                Promise.all(urls.map(getImage))
+                    .then( result => {
+
+                        for (let i=0; i<messageCollection.length; i++) {
+
+                            for (let j=0; j<result.length; j++) {
+
+                                if (messageCollection[i].id == result[j].id) {
+
+                                    messageList.appendChild(messageCollection[i].getElem());
+                                    messageCollection[i].setSrc(result[j].url)
+                                    
+                                    messageList.scrollTop  = messageList.scrollHeight;
+                                }
+                            }
+                        }
+
+                        urls = result;
+                        getNewMessage(sessionData, {messageList, lastMessageTime, urls}, state);
+                    });
+            }
+        }
+    }
+    xhr.send();
+}
+
 function getImage(userID) {
     return new Promise( function (res,rej) {
 
@@ -177,9 +405,8 @@ function loadUserData(login, sessionUserID) {
         .then( result => { avatarImg.src = result.url; });
 }
 
-function logOutListener(token) {
+function logOutListener(token, state) {
     let logOut = document.querySelector(".nav-item.log-out");
-    // let islogOut = false;
     logOut.addEventListener("click", function() {
         var xhr = new XMLHttpRequest();
         xhr.open("POST", SettingController.getUrl()+"api/users/logout", true);
@@ -188,7 +415,7 @@ function logOutListener(token) {
             if (xhr.readyState == 4) {
                 if (xhr.status == 200)
                 { 
-                    // islogOut = true;
+                    state.islogOut = true;
                     window.sessionStorage.clear();
                     window.location.reload();
                 }
@@ -198,220 +425,31 @@ function logOutListener(token) {
     });
 }
 
-window.onload = function () {
-    
-    let sessionData = loadSessionData();
-    loadUserData(sessionData.login, sessionData.userid);
-    logOutListener(sessionData.token);
+function windowBlurFocusListener(state) {
+    window.addEventListener("blur", () => state.isTabLeave = "true");
+    window.addEventListener("focus", () => {
+            document.title = "easychat";
+            state.newMessageCount = 0;
+            state.isTabLeave = false;
+        });
+}
 
-    let lastMessageTime;
-    let messageCollection = [];
-    let userIdSet = new Set();
-    let urls;
-    let messageList = document.querySelector(".message-list");
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", SettingController.getUrl()+"api/messages?limit="+SettingController.getNumberLimitMessage(), true);
-    xhr.setRequestHeader("Authorization", sessionData.token);
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4) {
-            if (xhr.status == 200)
-            {
-                let respObj = JSON.parse(xhr.responseText);
-             
-                respObj.forEach(item => {
-                    let message = new Message({
-                        nickname: item.username,
-                        text: item.text,
-                        time: item.timecreated ,
-                        nicknameFromToken: sessionStorage.getItem("login"),
-                        id: item.userid
-                    });
-
-                    lastMessageTime = message.time;
-                    messageCollection.push(message);
-                    userIdSet.add(message.id);
-                });
-
-                urls = Array.from(userIdSet);
-
-                Promise.all(urls.map(getImage))
-                    .then( result => {
-
-                        for (let i=0; i<messageCollection.length; i++) {
-
-                            for (let j=0; j<result.length; j++) {
-
-                                if (messageCollection[i].id == result[j].id) {
-
-                                    messageList.appendChild(messageCollection[i].getElem());
-                                    messageCollection[i].setSrc(result[j].url)
-                                    
-                                    messageList.scrollTop  = messageList.scrollHeight;
-                                }
-                            }
-                        }
-
-                        urls = result;
-                        getNewMessage();
-                    });
-            }
-        }
-    }
-    xhr.send();
-
-    let newMessageCount = 0;
-    let isTabLeave = false;
-    function getNewMessage() {
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", SettingController.getUrl()+"api/messages?begin="+lastMessageTime, true);
-        xhr.setRequestHeader("Authorization", sessionData.token);
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState == 4) {
-                if (xhr.status == 200)
-                {
-                    try{
-
-                        function circ(timeFraction) {
-                            return 1 - Math.sin(Math.acos(timeFraction))
-                        }
-                        let smoothAnim = new SmoothAnimation({
-                            duration: 300,
-                            timing: circ,
-                            isEsaeOut: true
-                        })
-
-                        let respObj = JSON.parse(xhr.responseText);
-
-                        respObj.forEach(item => {
-                            let message = new Message({
-                                nickname: item.username,
-                                text: item.text,
-                                time: item.timecreated ,
-                                nicknameFromToken: sessionStorage.getItem("login"),
-                                id: item.userid
-                            });
-        
-                            lastMessageTime = message.time;
-
-                            messageList.appendChild(message.getElem());
-
-                            let from = messageList.scrollTop; 
-                            let to = messageList.scrollHeight - messageList.scrollTop - messageList.clientHeight;
-                            smoothAnim.animate(function(progress) {
-                                    progress = isNaN(progress) ? 0 : progress;
-                                    messageList.scrollTop = from + to * progress ;
-                                });
-
-                            newMessageCount++;
-                            if (isTabLeave) {
-                                document.title = "easychat (" + newMessageCount + " сообщений)";
-                            } else {
-                                document.title = "easychat";
-                                newMessageCount = 0;
-                            }
-
-                            
-                            for (let j=0; j<urls.length; j++) {
-                                if (message.id == urls[j].id) {
-                                    message.setSrc(urls[j].url)
-                                }
-                            }
-                            if (message.imgSrc == undefined) {
-                                getImage(message.id)
-                                    .then( result => {
-                                        urls.push({
-                                            id: message.id,
-                                            url:result.url
-                                        });
-                                        message.setSrc( result.url);
-                                        console.dir(urls);
-                                    });
-                            }
-                        });
-                    } catch (e) {
-                        if (e.name !== "TypeError")
-                            alert(e);
-                    }
-                } else {
-                    // if (islogOut == true) {
-                    //     xhr.abort();
-                    //     return;
-                    // } else {
-                        alert(`Возникла ошибка: ${xhr.status}`);
-                    // }
-                }
-                getNewMessage();
-            }
-        }
-        xhr.send();
-    }
-
-    window.onblur = function () {
-        isTabLeave = true;
-    };
-    window.onfocus = function () {
-        document.title = "easychat";
-        newMessageCount = 0;
-        isTabLeave = false;
-    }
-
+function sendMessageListener(sessionData) {
     let messageText = document.querySelector(".message-text");
     let sendMessage = document.querySelector(".send-message");
-    function sendMEssageToServer(){
-        let formData = new FormData();
-        formData.append("text", messageText.value);
 
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", SettingController.getUrl()+"api/messages", true);
-        xhr.setRequestHeader("Authorization", sessionData.token);
-        xhr.send(formData);
-
-        messageText.value = "";
-    }
-    messageText.addEventListener("keydown", function (event) {
+    messageText.addEventListener("keydown", (event) => {
         if (event.keyCode === 13) {
-            sendMEssageToServer();
+            sendMEssageToServer(messageText, sessionData);
         }
-
     });
-    sendMessage.addEventListener("click", function (event) {
-        sendMEssageToServer();
-    });
+    sendMessage.addEventListener("click",  (event) => sendMEssageToServer(messageText, sessionData) );
+}
 
-
+function avatarChangeButtonListener(modalWindow) {
     let profileButton = document.querySelector(".menu .profile");
     let avatarButton = document.querySelector(".chat-box .avatar-img");
-    let modalWindow = document.querySelector(".modal-window");
-    let previewAvatar = document.querySelector(".upload-image");
-    let formDOMAvatar = document.getElementsByName("avatarFile")[0];
-    formDOMAvatar.onsubmit = function () {
-        return false;
-    }
-    formDOMAvatar.image.onchange = function () {
-        var reader  = new FileReader();
-        reader.readAsDataURL(formDOMAvatar.image.files[0]);
-        reader.onloadend = function () {
-            previewAvatar.src = reader.result;
-        }
-    }
-    avatarButton.onclick = profileButton.onclick = function() {
-        modalWindow.style.display = "block";
-    }
-    formDOMAvatar.uploadClose.onclick = function () {
-        modalWindow.style.display = "none";
-    }
-    formDOMAvatar.uploadFile.onclick = function () {
-        let formData = new FormData(formDOMAvatar);
-        var xhr = new XMLHttpRequest();
-        xhr.open("PUT", SettingController.getUrl()+"api/users/image", true);
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState == 4) {
-                if (xhr.status == 200) {
-                    loadUserData(sessionData.login, sessionData.userid);
-                }
-            }
-        }
-        xhr.setRequestHeader("Authorization", sessionData.token);
-        xhr.send(formData);
-    }
- }
+
+    avatarButton.onclick = profileButton.onclick = () => modalWindow.openModalWindow();
+}
+

@@ -19,10 +19,10 @@
             <form class="avatar-file" name="avatarFile">
                 <label class="custom-file-input button"> 
                     Выбрать файл 
-                    <input class="file-input" name="image" type="file">
+                    <input class="file-input" data-action="setImage" name="image" type="file">
                 </label>
-                <button class="button" name="uploadFile">Загрузить</button>
-                <button class="button" name="uploadClose">Закрыть</button>
+                <button class="button" data-action="uploadImage" name="uploadFile">Загрузить</button>
+                <button class="button" data-action="closeModalWindow" name="uploadClose">Закрыть</button>
             </form>
         </div>
     </div>
