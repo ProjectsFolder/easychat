@@ -121,8 +121,6 @@ class SmoothAnimation {
     }
 }
 
-
-
 function getImage(userID) {
     return new Promise( function (res,rej) {
 
@@ -154,35 +152,43 @@ function getImage(userID) {
     })
 }
 
-window.onload = function () {
+function loadSessionData() {
     let sessionToken = window.sessionStorage.getItem('token');
     if (sessionToken == null) {
         window.location = "login.html";
         return;
     }
-
     let sessionLogin = window.sessionStorage.getItem('login');
     let sessionUserID = window.sessionStorage.getItem('userid');
 
-    let profileName =  document.querySelector(".nav-item.profile");
-    profileName.textContent = sessionLogin;
+    return {
+        token:  sessionToken,
+        login:  sessionLogin,
+        userid: sessionUserID
+    }
+}
 
+function loadUserData(login, sessionUserID) {
+    let profileName =  document.querySelector(".nav-item.profile");
+    profileName.textContent = login;
 
     let avatarImg = document.querySelector(".message-input .avatar-img");
     getImage(sessionUserID)
         .then( result => { avatarImg.src = result.url; });
-    
+}
+
+function logOutListener(token) {
     let logOut = document.querySelector(".nav-item.log-out");
-    let islogOut = false;
+    // let islogOut = false;
     logOut.addEventListener("click", function() {
         var xhr = new XMLHttpRequest();
         xhr.open("POST", SettingController.getUrl()+"api/users/logout", true);
-        xhr.setRequestHeader("Authorization", sessionToken);
+        xhr.setRequestHeader("Authorization", token);
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4) {
                 if (xhr.status == 200)
                 { 
-                    islogOut = true;
+                    // islogOut = true;
                     window.sessionStorage.clear();
                     window.location.reload();
                 }
@@ -190,7 +196,13 @@ window.onload = function () {
         }
         xhr.send();
     });
+}
 
+window.onload = function () {
+    
+    let sessionData = loadSessionData();
+    loadUserData(sessionData.login, sessionData.userid);
+    logOutListener(sessionData.token);
 
     let lastMessageTime;
     let messageCollection = [];
@@ -199,7 +211,7 @@ window.onload = function () {
     let messageList = document.querySelector(".message-list");
     var xhr = new XMLHttpRequest();
     xhr.open("GET", SettingController.getUrl()+"api/messages?limit="+SettingController.getNumberLimitMessage(), true);
-    xhr.setRequestHeader("Authorization", sessionToken);
+    xhr.setRequestHeader("Authorization", sessionData.token);
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4) {
             if (xhr.status == 200)
@@ -252,7 +264,7 @@ window.onload = function () {
     function getNewMessage() {
         var xhr = new XMLHttpRequest();
         xhr.open("GET", SettingController.getUrl()+"api/messages?begin="+lastMessageTime, true);
-        xhr.setRequestHeader("Authorization", sessionToken);
+        xhr.setRequestHeader("Authorization", sessionData.token);
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4) {
                 if (xhr.status == 200)
@@ -321,12 +333,12 @@ window.onload = function () {
                             alert(e);
                     }
                 } else {
-                    if (islogOut == true) {
-                        xhr.abort();
-                        return;
-                    } else {
+                    // if (islogOut == true) {
+                    //     xhr.abort();
+                    //     return;
+                    // } else {
                         alert(`Возникла ошибка: ${xhr.status}`);
-                    }
+                    // }
                 }
                 getNewMessage();
             }
@@ -351,7 +363,7 @@ window.onload = function () {
 
         var xhr = new XMLHttpRequest();
         xhr.open("POST", SettingController.getUrl()+"api/messages", true);
-        xhr.setRequestHeader("Authorization", sessionToken);
+        xhr.setRequestHeader("Authorization", sessionData.token);
         xhr.send(formData);
 
         messageText.value = "";
@@ -395,16 +407,11 @@ window.onload = function () {
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4) {
                 if (xhr.status == 200) {
-
-                    getImage(sessionUserID)
-                        .then( result => {
-                        avatarImg.src = result.url;
-                    });
-
+                    loadUserData(sessionData.login, sessionData.userid);
                 }
             }
         }
-        xhr.setRequestHeader("Authorization", sessionToken);
+        xhr.setRequestHeader("Authorization", sessionData.token);
         xhr.send(formData);
     }
  }
